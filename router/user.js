@@ -3,8 +3,19 @@ const router = express.Router();
 
 const UserModel = require("../models/User");
 
+const Joi = require("@hapi/joi"); // change this to Yup :)
+
 //userPost
 router.post("/add", async (req, res) => {
+  const schema = {
+    name: Joi.string().min(5).required(),
+    email: Joi.string().min(5).email().required(),
+    password: Joi.string().min(6).required(),
+  };
+
+  const error = Joi.ValidationError(req.body, schema);
+  if (error) return res.send(error.details[0].message);
+
   const user = new UserModel({
     name: req.body.name,
     email: req.body.email,
