@@ -5,9 +5,18 @@ const UserModel = require("../models/User");
 
 const Joi = require("@hapi/joi");
 // change this to Yup :)
+
 const bcrypt = require("bcrypt");
 // 1- generate a salt = random text
 // 2- hash a password = hash(121313, salt)
+
+const jwt = require("jsonwebtoken");
+
+//get token
+router.get("/token", (req, res) => {
+  const token = jwt.sign({ _id: "456239828" }, process.env.SECRET_JWT);
+  res.send(token);
+});
 
 //userPost controller
 router.post("/add", async (req, res) => {
@@ -21,7 +30,7 @@ router.post("/add", async (req, res) => {
   if (error) return res.send(error.details[0].message);
 
   const salt = await bcrypt.genSalt(10);
-  const hashPassword = await bcrypt.hash(req.body.password, salt)
+  const hashPassword = await bcrypt.hash(req.body.password, salt);
 
   const user = new UserModel({
     name: req.body.name,
