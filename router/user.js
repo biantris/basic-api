@@ -3,9 +3,13 @@ const router = express.Router();
 
 const UserModel = require("../models/User");
 
-const Joi = require("@hapi/joi"); // change this to Yup :)
+const Joi = require("@hapi/joi");
+// change this to Yup :)
+const bcrypt = require("bcrypt");
+// 1- generate a salt = random text
+// 2- hash a password = hash(121313, salt)
 
-//userPost
+//userPost controller
 router.post("/add", async (req, res) => {
   const schema = {
     name: Joi.string().min(5).required(),
@@ -13,13 +17,16 @@ router.post("/add", async (req, res) => {
     password: Joi.string().min(6).required(),
   };
 
-  const error = Joi.ValidationError(req.body, schema);
+  const { error } = Joi.ValidationError(req.body, schema);
   if (error) return res.send(error.details[0].message);
+
+  const salt = await bcrypt.genSalt(10);
+  const hashPassword = await bcrypt.hash(req.body.password, salt)
 
   const user = new UserModel({
     name: req.body.name,
     email: req.body.email,
-    password: req.body.password,
+    password: hashPassword,
   });
 
   const save = await user.save();
@@ -30,7 +37,7 @@ router.post("/add", async (req, res) => {
   }
 });
 
-//userGetAll
+//userGetAll controller
 router.get("/all", async (req, res) => {
   const users = await UserModel.find();
   try {
@@ -40,7 +47,7 @@ router.get("/all", async (req, res) => {
   }
 });
 
-//userGet
+//userGet controller
 router.get("/user/:id", async (req, res) => {
   const id = req.params.id;
   const user = await UserModel.findById(id);
@@ -51,7 +58,7 @@ router.get("/user/:id", async (req, res) => {
   }
 });
 
-//userDelete
+//userDelete controller
 router.delete("/user/:id", async (req, res) => {
   const id = req.params.id;
 
@@ -66,7 +73,7 @@ router.delete("/user/:id", async (req, res) => {
   }
 });
 
-//userUpdate
+//userUpdate controller
 router.update("/user/:id", async (req, res) => {
   const id = req.params.id;
 
