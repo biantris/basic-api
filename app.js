@@ -4,9 +4,13 @@ const env = require("dotenv/config");
 
 const app = express();
 
-const userRoutes = require("./router/user");
+app.use(express.json())
 
+const userRoutes = require("./router/user");
 app.use("/api", userRoutes);
+
+const authRoutes = require("./router/auth");
+app.use("api/auth", authRoutes);
 
 app.listen("3000", () => {
   console.log("Server is running (~˘▾˘)~");
