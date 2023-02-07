@@ -11,6 +11,7 @@ const bcrypt = require("bcrypt");
 // 2- hash a password = hash(121313, salt)
 
 const jwt = require("jsonwebtoken");
+const verifyToken = "../middlewares/verifyJwt";
 
 //get token
 router.get("/token", (req, res) => {
@@ -47,7 +48,7 @@ router.post("/add", async (req, res) => {
 });
 
 //userGetAll controller
-router.get("/all", async (req, res) => {
+router.get("/all", verifyToken, async (req, res) => {
   const users = await UserModel.find();
   try {
     res.send(users);
