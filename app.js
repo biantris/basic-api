@@ -1,6 +1,6 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const env = require("dotenv/config");
+require("dotenv/config");
 
 const app = express();
 
@@ -18,11 +18,11 @@ app.listen("3000", () => {
 
 mongoose.connect(
   process.env.MONGO_URI,
-  { useNewUrlParse: true, useUnifiedTopology: true },
-  (err) => {
-    if (err) {
-      console.log(err.message);
-    }
-    console.log("Database connected!");
+  {
+      maxPoolSize: 50, 
+      wtimeoutMS: 2500,
+      useNewUrlParser: true
   }
-);
+)
+.then(() => console.log("Database connected!"))
+.catch((err) => console.log(err.message));
