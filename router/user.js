@@ -1,35 +1,20 @@
-const express = require("express");
-const router = express.Router();
-
-const UserModel = require("../models/User");
-
-const Joi = require("@hapi/joi");
-// change this to Yup :)
-
+const router = require("express").Router();
+const UserModel = require("../models/User.js");
 const bcrypt = require("bcrypt");
-// 1- generate a salt = random text
-// 2- hash a password = hash(121313, salt)
-
 const jwt = require("jsonwebtoken");
-const verifyToken = "../middlewares/verifyJwt";
+const validatePayload = require("../middlewares/validatePayload.js");
+const { updateUserSchema } = require("../schemas/updateUser.js");
+const { addUserSchema } = require("../schemas/addUser.js");
+const verifyToken = require("../middlewares/verifyJwt.js");
 
 //get token
 router.get("/token", (req, res) => {
   const token = jwt.sign({ _id: "456239828" }, process.env.SECRET_JWT);
-  res.send(token);
+  res.status(200).json({ token });
 });
 
 //userPost controller
-router.post("/add", async (req, res) => {
-  const schema = {
-    name: Joi.string().min(5).required(),
-    email: Joi.string().min(5).email().required(),
-    password: Joi.string().min(6).required(),
-  };
-
-  const { error } = Joi.ValidationError(req.body, schema);
-  if (error) return res.send(error.details[0].message);
-
+router.post("/add", validatePayload(addUserSchema), async (req, res) => {
   const salt = await bcrypt.genSalt(10);
   const hashPassword = await bcrypt.hash(req.body.password, salt);
 
@@ -43,7 +28,7 @@ router.post("/add", async (req, res) => {
   try {
     res.send(save);
   } catch (err) {
-    res.send(err);
+    res.status(500).json({ error: "Internal Server Error, try again soon" });
   }
 });
 
@@ -53,23 +38,23 @@ router.get("/all", verifyToken, async (req, res) => {
   try {
     res.send(users);
   } catch (err) {
-    res.send(err);
+    res.status(500).json({ error: "Internal Server Error, try again soon" });
   }
 });
 
 //userGet controller
-router.get("/user/:id", async (req, res) => {
+router.get("/:id", verifyToken, async (req, res) => {
   const id = req.params.id;
   const user = await UserModel.findById(id);
   try {
     res.send(user);
   } catch (err) {
-    res.send(err);
+    res.status(500).json({ error: "Internal Server Error, try again soon" });
   }
 });
 
 //userDelete controller
-router.delete("/user/:id", async (req, res) => {
+router.delete("/delete/:id", verifyToken, async (req, res) => {
   const id = req.params.id;
 
   const deleteUser = await UserModel.remove({
@@ -79,15 +64,14 @@ router.delete("/user/:id", async (req, res) => {
   try {
     res.send(deleteUser);
   } catch (err) {
-    res.send(err);
+    res.status(500).json({ error: "Internal Server Error, try again soon" });
   }
 });
 
 //userUpdate controller
-router.update("/user/:id", async (req, res) => {
+router.put("/update/:id", verifyToken, validatePayload(updateUserSchema), async (req, res) => {
   const id = req.params.id;
-
-  const updateUser = await UserModel.updateOne(
+  await UserModel.updateOne(
     {
       _id: id,
     },
@@ -97,9 +81,9 @@ router.update("/user/:id", async (req, res) => {
   );
 
   try {
-    res.send(updateUser);
+    res.status(204);
   } catch (err) {
-    res.send(err);
+    res.status(500).json({ error: "Internal Server Error, try again soon" });
   }
 });
 
