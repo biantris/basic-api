@@ -1,28 +1,20 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const env = require("dotenv/config");
+const authRoutes = require("./router/auth.js");
+const userRoutes = require("./router/user.js");
 
 const app = express();
-
 app.use(express.json())
+app.use("/api/user", userRoutes);
+app.use("/api/auth", authRoutes);
 
-const userRoutes = require("./router/user");
-app.use("/api", userRoutes);
-
-const authRoutes = require("./router/auth");
-app.use("api/auth", authRoutes);
-
-app.listen("3000", () => {
-  console.log("Server is running (~˘▾˘)~");
-});
-
-mongoose.connect(
-  process.env.MONGO_URI,
-  { useNewUrlParse: true, useUnifiedTopology: true },
-  (err) => {
-    if (err) {
-      console.log(err.message);
-    }
-    console.log("Database connected!");
-  }
-);
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+}).then(() => {
+    console.log("Database Connect has been success!") 
+    const port = process.env.PORT || 3000
+    app.listen(port, () => `Server is running on ${port}`)
+  }).catch(e => {
+    console.log(e)
+  })

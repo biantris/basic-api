@@ -1,11 +1,11 @@
-const router = express.Router();
-
-const UserModel = require("../models/User");
-const User = require("../models/User");
+const router = require("express").Router();
+const UserModel = require("../models/User.js");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const validatePayload = require("../middlewares/validatePayload.js");
+const { userLoginSchema } = require("../schemas/userLogin.js");
 
-router.post("/login", async (req, res) => {
+router.post("/login", validatePayload(userLoginSchema), async (req, res) => {
   //1- verify email, 2- pass verification -> return response
 
   const user = await UserModel.findOne({ email: req.body.email });
